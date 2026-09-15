@@ -133,6 +133,7 @@ class PolicyTrainer(Actor, Configurable):
             world_size = dist_utils.init_distributed(
                 config.comm,
                 base_folder=output_dir,
+                fp32_matmul_precision=config.training.fp32_matmul_precision,
             )
 
         self.parallel_dims = ParallelDims.from_config(config.parallelism, world_size)

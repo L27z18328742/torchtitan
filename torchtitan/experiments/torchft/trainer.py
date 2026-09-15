@@ -371,6 +371,7 @@ class FaultTolerantTrainer(Trainer):
             enable_cpu_backend=config.training.enable_cpu_offload,
             base_folder=config.dump_folder,
             ranks=global_ranks,
+            fp32_matmul_precision=config.training.fp32_matmul_precision,
         )
 
         # FT addition: build TorchFTManager

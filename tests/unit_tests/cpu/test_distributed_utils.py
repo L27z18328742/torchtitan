@@ -43,6 +43,22 @@ def test_fake_pg_uses_requested_rank(monkeypatch: pytest.MonkeyPatch) -> None:
     init_fake_mode.assert_called_once_with(8, rank=6)
 
 
+def test_explicit_ieee_precision_preserves_legacy_cuda_matmuls() -> None:
+    with (
+        patch("torch.distributed.is_initialized", return_value=True),
+        patch("torch.distributed.get_world_size", return_value=1),
+        patch.object(dist_utils, "enable_fp32_matmul_emulation_with_bf16x9") as bfx9,
+    ):
+        assert init_distributed(CommConfig(), fp32_matmul_precision="ieee") == 1
+        assert torch.backends.cuda.matmul.fp32_precision == "ieee"
+    bfx9.assert_not_called()
+
+
+def test_invalid_matmul_precision_fails_before_distributed_initialization() -> None:
+    with pytest.raises(ValueError, match="Unknown FP32 matmul precision"):
+        init_distributed(CommConfig(), fp32_matmul_precision="unknown")
+
+
 def test_fake_pg_rejects_out_of_range_rank(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -470,8 +470,16 @@ def init_distributed(
     enable_cpu_backend: bool = False,
     base_folder: str = "",
     ranks: list[int] | None = None,
+    *,
+    fp32_matmul_precision: str = "bfx9",
 ) -> int:
-    enable_fp32_matmul_emulation_with_bf16x9()
+    if fp32_matmul_precision == "bfx9":
+        enable_fp32_matmul_emulation_with_bf16x9()
+    elif fp32_matmul_precision == "ieee":
+        torch.backends.cuda.matmul.fp32_precision = "ieee"
+        logger.info("Using IEEE FP32 CUDA matmuls")
+    else:
+        raise ValueError(f"Unknown FP32 matmul precision: {fp32_matmul_precision}")
 
     # Skip initialization if already initialized
     if torch.distributed.is_initialized():
@@ -587,8 +595,14 @@ def set_pg_timeouts(
         mesh.get_group()
         for mesh in parallel_dims.get_all_one_dimensional_meshes().values()
     ] + [None]
+    set_timeout = getattr(torch.distributed, "set_timeout", None)
+    if set_timeout is None:
+        # Older PyTorch builds expose the same operation under its private name.
+        from torch.distributed.distributed_c10d import _set_pg_timeout
+
+        set_timeout = _set_pg_timeout
     for group in groups:
-        torch.distributed.set_timeout(timeout, group)
+        set_timeout(timeout, group)
 
 
 @torch.no_grad()

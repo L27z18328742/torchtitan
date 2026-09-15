@@ -712,6 +712,7 @@ class Trainer(torch.distributed.checkpoint.stateful.Stateful, Configurable):
             config.comm,
             enable_cpu_backend=config.training.enable_cpu_offload,
             base_folder=config.dump_folder,
+            fp32_matmul_precision=config.training.fp32_matmul_precision,
         )
 
         return ParallelDims.from_config(config.parallelism, world_size)

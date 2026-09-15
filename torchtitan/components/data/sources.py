@@ -6,16 +6,19 @@
 
 """Storage adapters for Grain datasets."""
 
+from __future__ import annotations
+
 import glob
 import json
 from array import array
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable, TYPE_CHECKING
 
-import datasets
 import grain.python as grain
-from datasets.distributed import split_dataset_by_node
+
+if TYPE_CHECKING:
+    import datasets
 
 from torchtitan.components.data.types import DatasetIterationPolicy
 from torchtitan.config import Configurable
@@ -115,6 +118,8 @@ class HuggingFaceRandomAccessSource(Configurable):
         dataset_iteration_policy: DatasetIterationPolicy,
     ) -> None:
         del dataset_iteration_policy
+        import datasets
+
         dataset = datasets.load_dataset(
             config.path,
             name=config.name,
@@ -165,6 +170,9 @@ class HuggingFaceStreamingSource(Configurable, grain.IterDataset):
         dataset_iteration_policy: DatasetIterationPolicy,
     ) -> None:
         super().__init__()
+        import datasets
+        from datasets.distributed import split_dataset_by_node
+
         dataset = datasets.load_dataset(
             config.path,
             name=config.name,

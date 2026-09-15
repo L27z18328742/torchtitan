@@ -107,6 +107,9 @@ class TrainingConfig:
     This feature only takes effect when data_parallel_shard_degree > 1
     """
 
+    fp32_matmul_precision: Literal["bfx9", "ieee"] = "bfx9"
+    """Use BFX9 on supported NVIDIA GPUs, or explicitly retain IEEE FP32 matmuls."""
+
     gc_freq: int = 50
     """Python garbage control scheduling interval, in steps"""
 
